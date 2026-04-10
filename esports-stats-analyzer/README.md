@@ -86,6 +86,5 @@ After rebuilding, run the app again and use the **Year** filter in the sidebar.
 
 ## Notes
 
-- The included database may only contain one snapshot until you rebuild it.
-- The multi-year setup uses yearly Oracle's Elixir files so the dashboard can switch cleanly across seasons.
-- The code is organized so the data source and dashboard logic can be extended later.
+- The included database may only contain those specific snapshots until you rebuild it
+- The multi-year setup uses yearly Oracle's Elixir files so the dashboard can switch cleanly across seasons
