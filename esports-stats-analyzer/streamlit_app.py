@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import pandas as pd
 import plotly.express as px
 import streamlit as st
 
@@ -13,8 +12,9 @@ from src.analytics import (
     top_recent_players,
     top_recent_teams,
 )
+from src.config import DEFAULT_YEARS
 from src.data_loader import load_metadata, load_players, load_teams
-from src.ui_helpers import bar_chart, format_leaderboard, render_metric_card
+from src.ui_helpers import format_leaderboard, render_metric_card
 
 
 st.set_page_config(page_title='Esports Stats Analyzer', page_icon='🎮', layout='wide')
@@ -28,12 +28,15 @@ metadata = load_metadata()
 
 min_date = players['date'].min().date()
 max_date = players['date'].max().date()
+all_years = sorted(players['year'].dropna().astype(int).unique().tolist())
 all_leagues = sorted(players['league'].dropna().unique().tolist())
 all_splits = sorted(players['split'].dropna().unique().tolist())
 all_positions = ['top', 'jng', 'mid', 'bot', 'sup']
+default_years = [int(year) for year in DEFAULT_YEARS if int(year) in all_years] or all_years[-3:] or all_years
 
 with st.sidebar:
     st.header('Filters')
+    selected_years = st.multiselect('Year', all_years, default=default_years)
     selected_leagues = st.multiselect('League', all_leagues, default=['LCK', 'LPL', 'LEC', 'LCS'] if set(['LCK', 'LPL', 'LEC', 'LCS']).issubset(set(all_leagues)) else all_leagues[:4])
     selected_splits = st.multiselect('Split', all_splits, default=all_splits)
     selected_positions = st.multiselect('Player roles', all_positions, default=all_positions)
@@ -44,15 +47,17 @@ with st.sidebar:
     with st.expander('Data source', expanded=False):
         if not metadata.empty:
             st.write(metadata.loc[0, 'source_name'])
-            st.caption('SQLite snapshot ships with the repo so the dashboard runs immediately.')
+            if 'years_loaded' in metadata.columns:
+                st.caption(f"Years loaded: {metadata.loc[0, 'years_loaded']}")
+            st.caption('SQLite snapshot ships with the repo so the dashboard runs immediately once the database is built.')
 
 if isinstance(selected_dates, tuple) and len(selected_dates) == 2:
     date_range = selected_dates
 else:
     date_range = (min_date, max_date)
 
-filtered_players = filter_players(players, selected_leagues, selected_splits, date_range, playoffs_only, selected_positions)
-filtered_teams = filter_teams(teams, selected_leagues, selected_splits, date_range, playoffs_only)
+filtered_players = filter_players(players, selected_years, selected_leagues, selected_splits, date_range, playoffs_only, selected_positions)
+filtered_teams = filter_teams(teams, selected_years, selected_leagues, selected_splits, date_range, playoffs_only)
 
 player_board = build_player_leaderboard(filtered_players, min_games=min_games)
 team_board = build_team_leaderboard(filtered_teams, min_games=min_games)

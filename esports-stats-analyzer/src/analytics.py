@@ -6,6 +6,7 @@ import pandas as pd
 
 def apply_shared_filters(
     df: pd.DataFrame,
+    years: list[int],
     leagues: list[str],
     splits: list[str],
     date_range: tuple[pd.Timestamp, pd.Timestamp],
@@ -13,6 +14,8 @@ def apply_shared_filters(
 ) -> pd.DataFrame:
     filtered = df.copy()
 
+    if years:
+        filtered = filtered[filtered['year'].isin(years)]
     if leagues:
         filtered = filtered[filtered['league'].isin(leagues)]
     if splits:
@@ -29,13 +32,14 @@ def apply_shared_filters(
 
 def filter_players(
     players: pd.DataFrame,
+    years: list[int],
     leagues: list[str],
     splits: list[str],
     date_range: tuple[pd.Timestamp, pd.Timestamp],
     playoffs_only: bool,
     positions: list[str],
 ) -> pd.DataFrame:
-    filtered = apply_shared_filters(players, leagues, splits, date_range, playoffs_only)
+    filtered = apply_shared_filters(players, years, leagues, splits, date_range, playoffs_only)
     if positions:
         filtered = filtered[filtered['position'].isin(positions)]
     return filtered
@@ -43,12 +47,13 @@ def filter_players(
 
 def filter_teams(
     teams: pd.DataFrame,
+    years: list[int],
     leagues: list[str],
     splits: list[str],
     date_range: tuple[pd.Timestamp, pd.Timestamp],
     playoffs_only: bool,
 ) -> pd.DataFrame:
-    return apply_shared_filters(teams, leagues, splits, date_range, playoffs_only)
+    return apply_shared_filters(teams, years, leagues, splits, date_range, playoffs_only)
 
 
 RESULT_MAP = {1: 'W', 0: 'L'}
